@@ -7,15 +7,18 @@ GMAIL_CONFIG_FILE = "/home/pi/config/msmtprc_gmail"
 SENSOR_PIN = 21
 ON_OFF_PIN = 20
 
-class StateMachine
+class StateMachine:
     def __init__(self):
         self.state = False
+        print "Minitor OFF"
 
     def change_state(self):
         if self.state:
             self.sate = False
+            print "Turn OFF"
         else:
             self.state = True
+            print "Turn ON"
         time.sleep(2)
     def onMonitoring(self):
         return self.state

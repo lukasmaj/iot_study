@@ -65,7 +65,7 @@ class IoTProject:
             assert False, "Cannot connect to any server"
 
     def __checkConnection(self, server):
-        return False
+
         cmd = ["ping {0} -c 3".format(server)]
         ret = self.__exe(cmd)
         if "Host Unreachable" in ret:

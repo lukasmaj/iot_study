@@ -4,7 +4,7 @@ import subprocess
 
 HOTMAIL_CONFIG_FILE = "/home/pi/config/msmtprc_hotmail"
 GMAIL_CONFIG_FILE = "/home/pi/config/msmtprc_gmail"
-SENSOR_PIN = 21
+SENSOR_PIN = 26
 ON_OFF_PIN = 20
 
 class StateMachine:
@@ -14,11 +14,12 @@ class StateMachine:
 
     def change_state(self):
         if self.state:
-            self.sate = False
+            self.state = False
             print "Turn OFF"
         else:
             self.state = True
             print "Turn ON"
+
         time.sleep(2)
     def onMonitoring(self):
         return self.state
@@ -26,7 +27,8 @@ class StateMachine:
 class IoTProject:
     def __init__(self, email_list):
         self.email_list = email_list
-        self.primary_connection = "gmail"
+        #self.primary_connection = "gmail"
+        self.primary_connection = "hotmail"
         self.state_machine = StateMachine() 
 
     def runObserver(self):
@@ -42,12 +44,13 @@ class IoTProject:
             if self.state_machine.onMonitoring():
                 if gpio.check_state([SENSOR_PIN]) == 1:
                     self.__send_message()
-                    time.sleep(1000)
+                    time.sleep(5)
                 self.__getReadySmtp()  
     
     def __getReadySmtp(self):
         cnt_fail = 0
         if self.primary_connection is "gmail":
+            self.__chengeFile(GMAIL_CONFIG_FILE)
             if not self.__checkConnection("smtp.gmail.com"):
                 self.primary_connection = "hotmail"
                 cnt_fail = cnt_fail+1
@@ -55,6 +58,7 @@ class IoTProject:
                 time.sleep(1)
 
         if self.primary_connection is "hotmail":
+            self.__chengeFile(HOTMAIL_CONFIG_FILE)
             if not self.__checkConnection("smtp.office365.com"):
                 self.primary_connection = "gmail" 
                 cnt_fail = cnt_fail+1
@@ -78,10 +82,14 @@ class IoTProject:
             title = "Zaobserwowano ruch"
             body = "Twoja akcja jest wymagana!\n W twoim pomieszczeniu ktos jest! "
             message = "\nFrom:Monitor\nSubject:{0}\nTo:{1}\n\n{2}".format(title,email,body)
-
-            cmd = ["echo -e \"{0}\" | sendmail {1}".format(message, email)]
-            #os.system(cmd)
-            self.__exe(cmd)
+            if self.primary_connection == "gmail":
+                message = "From:Monitor\nSubject:{0}\nTo:{1}\n\n{2}".format(title,email,body)
+                cmd = "echo \"{0}\" | sendmail {1}".format(message, email)
+            else:
+                message = "\nFrom:Monitor\nSubject:{0}\nTo:{1}\n\n{2}".format(title,email,body)
+                cmd = "echo -e \"{0}\" | sendmail {1}".format(message, email)
+            #self.__exe(cmd)
+            os.system(cmd)
 
     def __exe(self, cmd):
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,stdin=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -94,6 +102,5 @@ class IoTProject:
 
 if __name__ == "__main__":
     email_list=["p4tmarc@gmail.com", "majkowski.lukasz.gm@gmail.com"]
-    #email_list=["majkowski.lukasz.gm@gmail.com"]
     iot_proj = IoTProject(email_list=email_list)
     iot_proj.runObserver()

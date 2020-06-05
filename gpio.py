@@ -11,6 +11,22 @@ class Gpio:
         out, err = p.communicate()
         return out
 
+    def set_pin(self, pin):
+        path = "/sys/class/gpio/gpio{0}/value".format(pin)
+        cmd = ["echo 1 > {0}".format(path)]
+        self.__exe(cmd)
+
+    def clear_pin(self, pin):
+        path = "/sys/class/gpio/gpio{0}/value".format(pin)
+        cmd = ["echo 0 > {0}".format(path)]
+        self.__exe(cmd)
+
+    def set_as_output(self,pin):
+        path = "/sys/class/gpio/gpio{0}/direction".format(pin)
+        print path
+        cmd = ["echo out > {0}".format(path)]
+        self.__exe(cmd)
+
     def is_enable_pin(self, pin):
         path = "/sys/class/gpio/gpio{0}".format(pin)
         if os.path.exists(path):
@@ -43,3 +59,6 @@ use_pin = __gpio.use_pin
 unuse_pin = __gpio.unuse_pin
 check_state = __gpio.check_state
 is_enable_pin = __gpio.is_enable_pin
+set_pin = __gpio.set_pin
+clear_pin = __gpio.clear_pin
+set_as_output = __gpio.set_as_output

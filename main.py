@@ -1,11 +1,33 @@
 import os, time, time
 import gpio
 import subprocess
+import threading
 
 HOTMAIL_CONFIG_FILE = "/home/pi/config/msmtprc_hotmail"
 GMAIL_CONFIG_FILE = "/home/pi/config/msmtprc_gmail"
 SENSOR_PIN = 26
 ON_OFF_PIN = 20
+
+
+
+class Pins(threading.Thread):
+    def __init__(self, pin, delay):
+        threading.Thread.__init__(self)
+        self.pin = pin
+        self.on = False
+        self.delay = delay
+    def run(self):
+        while True:
+            prev_state = self.on 
+            if gpio.check_state([self.pin]) == 1:
+                self.on = True
+                if prev_state:
+                    time.sleep(self.delay)
+
+    def state(self):
+        ret = self.on
+        self.on = False
+        return ret
 
 class StateMachine:
     def __init__(self):
@@ -19,7 +41,6 @@ class StateMachine:
         else:
             self.state = True
             print "Turn ON"
-
         time.sleep(2)
     def onMonitoring(self):
         return self.state
@@ -36,13 +57,17 @@ class IoTProject:
             gpio.use_pin([SENSOR_PIN])
         if not gpio.is_enable_pin(ON_OFF_PIN):
             gpio.use_pin([ON_OFF_PIN])
-
+        on_pin = Pins(ON_OFF_PIN, 2)
+        on_pin.start()
+        sensor_pin = Pins(SENSOR_PIN, 10)
+        sensor_pin.start()
         while True:
-            if gpio.check_state([ON_OFF_PIN]) == 1:
+            #if gpio.check_state([ON_OFF_PIN]) == 1:
+            if on_pin.state():
                 self.state_machine.change_state()
             
             if self.state_machine.onMonitoring():
-                if gpio.check_state([SENSOR_PIN]) == 1:
+                if sensor_pin.state():
                     self.__send_message()
                     time.sleep(5)
                 self.__getReadySmtp()  

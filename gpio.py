@@ -22,8 +22,6 @@ class Gpio:
         self.__exe(cmd)
 
     def set_as_output(self,pin):
-        path = "/sys/class/gpio/gpio{0}/direction".format(pin)
-        print path
         cmd = ["echo out > {0}".format(path)]
         self.__exe(cmd)
 

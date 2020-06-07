@@ -126,6 +126,6 @@ class IoTProject:
         self.__exe(cmd)
 
 if __name__ == "__main__":
-    email_list=["p4tmarc@gmail.com", "majkowski.lukasz.gm@gmail.com"]
+    email_list=["p4tmarc@gmail.com", "majkowski.lukasz.gm@gmail.com", "testowe.konto.lukasz@gazeta.pl"]
     iot_proj = IoTProject(email_list=email_list)
     iot_proj.runObserver()
